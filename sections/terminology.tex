@@ -1,22 +1,24 @@
 \documentclass[../essay.tex]{subfiles}
 \begin{document}
-The discovery of \textbf{frequent itemsets} is one of the major families of
-techniques for characterizing data.
-To explain how frequent itemsets work, we will take a look at the
-\emph{market-basket} model first.
-The market-basket model and frequent itemsets problem originated in the analysis
-of true market baskets.
+The discovery of \textbf{frequent itemsets} is one of the major families of techniques for characterizing data.
+To explain how frequent itemsets work, we will take a look at the \emph{market-basket} model first.
+The market-basket model and frequent itemsets problem originated in the analysis of true market baskets.
 Retailers wanted to learn what items are frequently bought together.
-In the \emph{market-basket} model we look at the many-to-many relationship
-between the \emph{items} and the \emph{baskets}.
+In the \emph{market-basket} model we look at the many-to-many relationship between the \emph{items} and the \emph{baskets}.
 The \emph{frequent itemsets} problem follows from this model.
-We are concerned with finding the sets of items that appear in many of the same
-baskets.
-To give a more formal definition: we have a number $s$, which is known as the
-\emph{support threshold}.
-The \emph{support} for a set of items $I$ is the number of baskets for which $I$
-is a subset.
+We are concerned with finding the sets of items that appear in many of the same baskets.
+To give a more formal definition: we have a number $s$, which is known as the \emph{support threshold}.
+The \emph{support} for a set of items $I$ is the number of baskets for which $I$ is a subset.
 We say that a set of items $I$ is frequent if its supports is $s$ or more.
 
-\textbf{Association Rules}
+\textbf{Association Rules} are a collection of if-then rules.
+They are often used to represent the information of frequent itemsets.
+For an \emph{association rule} $I \to j$: $I$ is a set of items and $j$ is an item.
+The implication of such a rule is that if all of the items in $I$ appear in some basket, then $j$ is likely to appear as well.
+We define likely as the \emph{confidence} of the association rule $I \to j$.
+The \emph{confidence} is the ratio of the support for $I \cup \{j\}$ to the support for $I$.
+More intuitively, the confidence of the rule is the fraction of the baskets with all of $I$ that also contain $j$.
+The \emph{interest} of an association rule $I \to j$ is the difference between its confidence and the fraction of baskets that contain $j$.
+A high \emph{positive interest} means that the presence of $I$ in a basket somehow causes the presence of $j$.
+A high \emph{negative interest} means that the presence of $I$ somehow discourages the presence of $j$.
 \end{document}
