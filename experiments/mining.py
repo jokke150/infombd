@@ -79,6 +79,13 @@ def compare_fis(report_a, report_b):
     fi_b = fi_to_set(report_b)
     return fi_a.intersection(fi_b)
 
+# Calculates the percentage of b/a
+def percentage(a, b):
+    if a == 0.0 or b == 0.0:
+        return 0.0
+    else:
+        return 100.0 * (float(b)/float(a))
+
 # ----------------------------------------------------------------------------
 
 def experiment(transactions, epsilon, delta, mu, supp, rep):
@@ -110,8 +117,7 @@ def experiment(transactions, epsilon, delta, mu, supp, rep):
         print('[+] Comparing the frequent itemsets')
         fi_common = compare_fis(t_fi, d_fi)
         fi_common_size = len(fi_common)
-        percent = 100.0 * numpy.mean([float(fi_common_size)/float(t_fi_size),
-                                      float(fi_common_size)/float(d_fi_size)])
+        percent = numpy.mean([percentage(t_fi_size, fi_common_size), percentage(d_fi_size, fi_common_size)])
         print('[|] {} frequent itemsets in common ({:.2f}%)'.format(fi_common_size, percent))
 
         # Finish the experiment
@@ -121,8 +127,10 @@ def experiment(transactions, epsilon, delta, mu, supp, rep):
         print('')
         results.append([epsilon,
                         delta,
+                        mu,
                         t_bound,
                         t_fi_size,
+                        threshold,
                         d_bound,
                         d_fi_size,
                         fi_common_size,
@@ -158,8 +166,10 @@ csv_fname = 'result-{}-x{}.csv'.format(fname, replication)
 csv_data  = [[
     'epsilon',
     'delta',
+    'mu',
     'toivonen',
     'toivonen_fi_size',
+    'toivonen_threshold',
     'd-bound',
     'd-bound_fi_size',
     'common_size',
@@ -172,7 +182,7 @@ print('')
 for e in epsilon:
     for d in delta:
         for m in mu:
-            csv_data.append(experiment(transactions, e, d, m, 90, repeat))
+            csv_data.append(experiment(transactions, e, d, m, 75, repeat))
 
 with open(csv_fname, 'wb') as f:
     writer = csv.writer(f, delimiter=';')
