@@ -1,0 +1,66 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[top=1.5in, bottom=2in, left=1.25in, right=1.25in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[backend=biber]{biblatex}
+\usepackage{subfiles, amsmath, amssymb, mathtools}
+\usepackage{parskip, xspace, hyperref, enumitem, tabularx}
+\usepackage{color}
+
+\addbibresource{references.bib}
+
+% Hide the colored borders around hrefs (by hyperref)
+\hypersetup{pdfborder=0 0 0}
+
+\title{Big Data}
+\author{Jasper Robeer (3802337)}
+\date{April 2017}
+
+%% Personal definitions
+
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\DeclareMathOperator*{\argmin}{argmin}
+
+% PAC learning
+\newcommand{\PACcmplx}{m_{\mathcal{H}}(\epsilon, \delta)}
+\newcommand{\ERM}{\mathsf{ERM}_{\mathcal{H}}}
+
+% Frequent Itemsets
+\newcommand{\FI}{\mathsf{FI}}
+\newcommand{\FIsup}{\mathsf{sup}_{\mathcal{D}}}
+\newcommand{\FIfreq}{f_{\mathcal{D}}}
+\newcommand{\FIapprox}{$(\epsilon, \delta)$}
+
+%% Title page
+\newcommand*{\customtitle}{\begingroup
+    \thispagestyle{empty}
+    \vspace*{1.25in}
+    \centering
+    {\scshape \large Utrecht University} \\[0.5\baselineskip]
+    {\scshape \bfseries \Huge Big Data \par}
+    \vfill
+    \raggedleft
+    {Jasper Robeer \\ 3802337} \\[\baselineskip]
+    {\today}
+    \clearpage
+\endgroup}
+
+\begin{document}
+
+\customtitle
+
+\begin{abstract}
+    This essay is written as part of the \emph{Big Data} course at Utrecht University.
+    The essay consists of three parts.
+    In the first part of this essay we discuss the results of the works of \citeauthor{Riondato2012}: \citetitle{Riondato2012}, and \citetitle{Riondato2015}.
+    Then, in the second part we compare Tiovonen's bounds and the d-bound sample size by performing a small experimental study.
+    Finally, in the third part we discuss a topic of choice: \emph{todo}.
+\end{abstract}
+
+\subfile{sections/part_1}
+\subfile{sections/part_2}
+\subfile{sections/part_3}
+
+\printbibliography
+
+\end{document}

@@ -1,0 +1,93 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+%% The second part compares Toivonen's bounds and d-bound sample size by performing experiments
+%% on frequent itemsets.
+
+\section*{Part II}
+\setcounter{section}{2}
+\setcounter{subsection}{0}
+\addcontentsline{toc}{section}{Part II}
+
+\subsection{Introduction}
+\label{sec:II_intro}
+
+In the second part of the essay we will discuss the results of an experimental study performed on mining of frequent itemsets.
+The goal of the experiments is to compare Toivonen's bounds to the d-bound.
+How big of a sample do each of the bounds prescribe, and how good are the approximate results.
+Both bounds use the parameter pair $(\epsilon, \delta)$, which we will vary accordingly.
+In addition to the parameter pair, Toivonen's bounds also uses $\mu$.
+
+Based on \emph{Toivonen's} bounds we will need a minimal sample size of
+
+\begin{tabularx}{\textwidth}{X X}
+    {\begin{align}
+        &\abs{S} \ge \frac{1}{2\epsilon^{2}} \ln \frac{2}{\delta}
+    \end{align}}
+     & 
+    {\begin{align}
+        &\sqrt{\frac{1}{2n}\ln\frac{1}{\mu}}
+    \end{align}}
+\end{tabularx}
+
+Based on the \emph{d-bound} we will need a minimal sample size of
+\begin{align}
+    \abs{S} \ge \min \left\{ \abs{D}, \frac{4c}{\epsilon^{2}}\left( d + \log \frac{1}{\delta} \right) \right\}
+\end{align}
+Where $D$ is the data set.
+
+\subsection{Experimental Set Up}
+\label{sec:II_setup}
+
+The experimental setup is based on the experiments described in the works by \citeauthor{Riondato2015} \cite{Riondato2015},
+the book \citetitle{Leskovec2014mining} \cite{Leskovec2014mining},
+and the slides of the lectures given during the Big Data course at Utrecht University \cite{Siebes2017fim}.
+The following steps describe the process used during the experiments:
+\begin{enumerate}[noitemsep]
+    \item Inputs: a data set $\mathcal{D}$, and a parameter set $(\epsilon, \delta, \mu)$.
+    \item Compute the d-index of the data set $\mathcal{D}$.
+    \item Based on the parameters, compute Toivonen's and the d-bound sample sized.
+    \item \label{enum:sampling} Mine using sampling:
+        \begin{enumerate}[noitemsep]
+            \item Draw (with replacement) a sample of sufficient size.
+            \item Compute the set $\mathcal{F}$ of frequent itemsets on this sample (using the lowered threshold).
+            \item Check the support of the elements of $\mathcal{F}$ on the complete data set $\mathcal{D}$.
+        \end{enumerate}
+    \item Repeat step \ref{enum:sampling} $n$ times for each set of parameters --- we want to minimize the effect of the random sampling.
+\end{enumerate}
+
+We used data sets from the FIMI repository \cite{FIMI2003}.
+Just as in the paper by \citeauthor{Riondato2015}, we use the 'blow up' trick to replicate the data set a number of times,
+so that it is more representable compared to the sizes of modern data sets \cite[Section~5]{Riondato2015}.
+The sizes in the table below reflect the sizes of the data sets after applying the 'blow up' trick.
+
+\begin{center}
+\begin{tabular}{l r r}
+    \hline
+    Name & Size & d-index \\
+    \hline
+    accidents & & 46 \\
+    connect & & 43 \\
+    kosarak & & 443 \\
+    pumsb\_star & & 59 \\
+    retail & & 58 \\
+    \hline
+\end{tabular}
+\end{center}
+
+The three parameters were varied accordingly:
+$\delta = \left\{ 0.01, 0.05, 0.1 \right\}$,\\
+$\epsilon = \left\{ 0.01, 0.015, 0.02, 0.025 \right\}$, and
+$\mu = \left\{ \right\}$.
+
+The experiments and mining of frequent itemsets were implemented in Python,
+using \citeauthor{Borgelt2016}'s PyFIM library \cite{Borgelt2016}.
+The implementation can be found on GitHub \cite{Robeer2017}.
+
+\subsection{Results}
+\label{sec:II_results}
+
+\subsection{Conclusion}
+\label{sec:II_conclusion}
+
+\end{document}

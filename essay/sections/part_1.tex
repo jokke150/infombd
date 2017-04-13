@@ -1,0 +1,207 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+%% The first part explains the main results of the papers:
+%%  "Efficient Discovery of Association Rules and Frequent Itemsets through Sampling with Tight Performance Guarantees"
+%%  "Mining Frequent Itemsets Through Progressive Sampling with Rademacher Averages"
+%% Whilst explaining these results, we should also explain the concepts that we use.
+
+\section*{Part I}
+\setcounter{section}{1}
+\setcounter{subsection}{0}
+\addcontentsline{toc}{section}{Part I}
+
+\subsection{Introduction}
+\label{sec:I_intro}
+
+Within the field of big data, we will focus on data mining.
+Given huge sets of data we aim to learn something from the unstructured set of data.
+This something can be one of many things: knowledge, structure, patterns, etc.
+Big data plays a role here too. The amount of data that we have at hand is enormous, and ever growing faster and faster.
+We cannot simply run a learning or mining algorithm that goes over the whole data set one, or multiple times.
+Therefore, we will have to take a sample of the data set and perform our calculations on that sample.
+
+We will first discuss machine learning, and will see how the sample size plays an essential role.
+Then we will review the data mining preliminaries to get an understanding where the algorithms can be applied.
+Finally we discuss the results from the works by \citeauthor{Riondato2012} \cite{Riondato2012, Riondato2015} to tie the machine learning and data mining parts together.
+To see how big our sample should be, what performance guarantees we can get, and how we can get a high-quality approximation through sampling.
+
+\subsection{Machine Learning}
+\label{sec:I_machine_learning}
+
+Let us start with the data set $\mathcal{X}$ that we want to learn from.
+This is an arbitrary set containing items which can be virtually anything.
+Perhaps we want to learn from a data set of customers from some company, from a set of apples (are they ripe?), or from some historical football scores.
+We will assume that there is a distribution $\mathcal{D}$ underlying $\mathcal{X}$.
+Ultimately we would like to learn this underlying distribution.
+However, this information is not available to us (the learner).
+What we will focus on instead is learning a function $h: \mathcal{X} \to \mathcal{Y} $ from a sample set $S$,
+which labels the items from the data set $\mathcal{X}$ with one of the labels from the label set $\mathcal{Y}$.
+The sample set $S \subseteq \mathcal{X} \times \mathcal{Y}$ is a finite set of pairs for which we know the correct label.
+We will refer to the function $h$ as a \emph{hypothesis}.
+Learning a hypothesis should be simpler than learning the underlying distribution.
+\cite[Chapter~2]{Shalev2014understanding}
+
+When we sample items from the data set $\mathcal{X}$, we have to do so by sampling items independently of each other.
+The samples have to be independently and identically distributed according to $\mathcal{X}$.
+Sampling is often done with replacement.
+This means that for each sample that we pick, the probability of picking any sample remains the same.
+ 
+We would like to know how well a hypothesis performs.
+We quantify this by defining the \emph{loss} of a hypothesis to be the probability that it does not predict the correct label.
+This is captured in the true loss $L_{\mathcal{D}, f}(h)$
+of some hypothesis $h$ compared to the underlying distribution $\mathcal{D}$, and some \emph{true} function $f$.
+The loss can also be quantified over the sample set: $L_S(h)$, the fraction of samples that are correctly labelled over the total number of samples.
+Then we can work with the data that is readily available to us.
+However, the loss function is a random variable, as there is randomness caused by sampling items.
+\cite[Chapter~2]{Shalev2014understanding}
+
+We can collect the set of hypotheses in the hypotheses class $\mathcal{H}$.
+We can try to learn any hypothesis $h$, but often it can be beneficial to restrict ourselves.
+Such an restriction will introduce a bias over what we want to learn.
+Therefore, we would need some prior knowledge about the problem that we want to learn.
+This would result in a restricted hypotheses class $\mathcal{H}$.
+For example, one of the most often used restrictions is to require the hypotheses class to be finite.
+Our learning algorithm would then output a hypothesis $h$ for which the loss is minimal.
+Such a learning rule is known as \emph{Empirical Risk Minimization} (ERM).
+The algorithm itself is very simple.
+We compute the sample loss for each of the hypotheses in the hypotheses class $\mathcal{H}$, and return the hypothesis with the smallest loss.
+\begin{align}
+    \label{eq:erm}
+    \ERM = \argmin_{h \in \mathcal{H}} L_S(h)
+\end{align}
+\cite[Chapter~2]{Shalev2014understanding}
+
+Realistically, we will never learn the \emph{true} hypothesis which labels all the items from the data set $\mathcal{X}$ correctly.
+However, we would like to know when we can expect reasonable results from a learning algorithm.
+\emph{Probably Approximately Correct} (PAC) learning is a framework which can be used to determine whether a hypothesis class $\mathcal{H}$ is learnable.
+Probably approximately correct refers to the result of the algorithm.
+The algorithm will return a hypothesis based on the accuracy parameter $\epsilon$ (how far can the hypothesis be apart from the optimal hypothesis),
+and the confidence parameter $\delta$ (how confident are we to meet the accuracy parameter).
+
+The \emph{sample complexity} is a function $\PACcmplx$ that determines how many samples are needed to get a probably approximately correct hypothesis.
+For every finite hypothesis class can be shown that it is PAC learnable with a sample complexity of
+\begin{align}
+    \label{eq:sample_complexity}
+    \PACcmplx \leq \left\lceil\frac{\log(\abs{\mathcal{H}} / \delta)}{\epsilon}\right\rceil
+\end{align}
+and is therefore an upper-bound.
+We will not go into detail of the sample complexity of finite hypothesis classes, as we will later on revisit PAC learnability with the Vapnik-Chervonenkis dimension.
+However, the hypothesis class $\mathcal{H}$ has to obey the \emph{realizability assumption} in the case given above.
+The realizability assumption assumes that a hypothesis class $\mathcal{H}$ will contain a true hypothesis $h^*$, which correctly labels all the items.
+\cite[Chapter~3]{Shalev2014understanding}
+
+We can generalize the PAC learning framework on two fields.
+First, if when we relax the realizability assumption from PAC learning, the framework is known as \emph{Agnostic} PAC Learning.
+We are not certain anymore that we can find a true hypothesis $h^* \in \mathcal{H}$ which correctly labels all the items.
+However, this benefits us in another way.
+The relaxation of the realizability assumption helps us by not imposing any restrictions on the underlying distribution.
+Secondly, we can generalize the loss functions that can be used within the framework.
+The loss function that we described earlier determined the loss based on the number of errors that were made.
+For example, we can determine the loss based on the (squared) distance between the label from the hypothesis and the label from the sample set, for some item in the sample set.
+Recall the accuracy parameter $\epsilon$, and the confidence parameter $\delta$ that we defined for the PAC earning earlier.
+The agnostic PAC learning with a generalized loss function will return a hypothesis $h \in \mathcal{H}$,
+such that with a probability of at least $1 - \delta$
+\begin{align}
+    \label{eq:pac_loss}
+    L_{\mathcal{D}} \le \min_{h' \in \mathcal{H}} L_{\mathcal{D}}(h') + \epsilon
+\end{align}
+Where $L_{\mathcal{D}}$ is the expected loss of a hypothesis over the data set $\mathcal{D}$.
+\cite[Chapter~3]{Shalev2014understanding}
+
+% We are not only interested in when we can learn something, we want to know what we can learn too.
+How well we can learn something depends on the quality of the sample.
+To define the quality of a sample, we will reuse the accuracy parameter $\epsilon$ from PAC learning that we discussed earlier.
+The accuracy parameter defines how far the hypothesis can be apart from the optimal hypothesis.
+We will use the accuracy parameter to tell us when we have a good quality sample.
+Informally, a sample is good when the loss of a hypothesis on the sample is close to the loss of the true hypothesis on the sample.
+Such a sample is called an $\epsilon$-representative sample.
+\begin{align}
+    \label{eq:rep_sample}
+    \forall h \in \mathcal{H} \abs{L_{S(h)} - L_{\mathcal{D}}(h)} \le \epsilon
+\end{align}
+\cite[Chapter~4]{Shalev2014understanding}
+
+\emph{\color{red}TODO: review chapter~4 and chapter~5 ...}
+
+\subsection{Vapnik-Chervonenkis Dimension}
+\label{sec:I_vc_dimension}
+
+To decide what we can learn, we need to get an understanding of which hypotheses classes are PAC learnable.
+Furthermore, we need to figure out the sample complexity of the hypotheses classes if we want to use them in practice.
+We will tie together the concepts that we discusses in section~\ref{sec:I_machine_learning} about machine learning,
+and introduce the Vapnik-Chervonenkis (VC) Dimension \cite{Vapnik2015}.
+For a learning algorithm to be PAC learnable, it will be required to have a finite VC-dimension.
+\cite[Chapter~6]{Shalev2014understanding}
+
+\subsection{Data Mining}
+\label{sec:I_data_mining}
+
+\emph{\color{red}TODO: move this section up?}
+
+Within the field of data mining, we are interested in the mining of frequent itemsets and association rules.
+The two of them often go together.
+In line with the works that we discuss in the first part of this essay, we will focus mostly on the frequent itemsets.
+Their origin lies in the \emph{market-basket} model.
+Supermarkets wanted to learn more about their customers:
+which items are frequently bought together (the baskets/frequent itemsets)
+and, given a basket of items can we make predictions about which items the customer would buy also (association rules).
+\cite[Chapter~6]{Leskovec2014mining}
+
+Frequent Itemsets (FIs) mining is: given a data set $\mathcal{D}$ of \emph{transactions} (baskets),
+a ground set of all items $\mathcal{I}$, and a \emph{frequency threshold} $\theta \in (0,1]$
+we want to learn all the itemsets $I$ that appear in $\mathcal{D}$ with a frequency larger than $\theta$.
+\begin{align*}
+    \FI(\mathcal{D}, \mathcal{I}, \theta) &= \{(I, \FIfreq(I)) \mid \FIfreq(I) \ge \theta \}
+\end{align*}
+A transaction is a subset of the ground set $\mathcal{I}$.
+An itemset $I$ is a subset a transaction.
+The \emph{support} ($\FIsup$) of an itemset $I$, is the number of transactions in $\mathcal{D}$ that contain $I$.
+The \emph{frequency} of an itemset $I$, is the fraction of transactions in $\mathcal{D}$ that contain $I$:
+\begin{align*}
+    \FIfreq(I) = \frac{\FIsup(I)}{\abs{\mathcal{D}}}.
+\end{align*}
+%If we are interested in learning the top-\emph{K} FIs, we assume that there is some ordering on the itemsets based on frequency,
+%for which we can then extract the \emph{K} most frequent itemsets.
+
+Association Rules (ARs) are rules of the form $I \Rightarrow A$,
+which informally state: how likely is it for an itemset $A$ to appear in a transaction, when an itemset $I$ is in a given transaction.
+This likeliness is expressed as the \emph{confidence} of an association rule: the frequency of the itemset $I \cup A$ to the itemset $I$.
+\cite{Riondato2012}
+
+We are interested in finding a high-quality approximation of the frequent itemsets.
+To describe the quality of the approximation, we will discuss the \FIapprox-approximation.
+The \FIapprox-approximation of the frequent itemsets $\FI(\mathcal{D}, \mathcal{I}, \theta)$ is a set of pairs
+which are close in their frequency to the itemsets in the actual frequent itemsets.
+\begin{align*}
+    \mathcal{C} = \{ (I, f_I) \mid f_I \in (0,1] \}
+\end{align*}
+Such that with a probability of at least $1 - \delta$:
+\begin{enumerate}[noitemsep]
+    \item $\mathcal{C}$ contains all itemsets in $\FI(\mathcal{D}, \mathcal{I}, \theta)$;
+    \item For every pair in $\mathcal{C}$ it holds that $\FIfreq(I) \ge \theta - \epsilon$;
+    \item And, for every pair in $\mathcal{C}$ it holds that $\abs{\FIfreq(I) - f_I} \le \epsilon/2$.
+\end{enumerate}
+Where $f_I$ is the approximation of $\FIfreq(I)$.
+\cite{Riondato2015}
+
+\subsection{Performance Guarantees}
+\label{sec:I_performance_guarantees}
+
+The work by \citeauthor{Riondato2012}: \citetitle{Riondato2012},
+provides a general technique for bounding the sample size required for getting high-quality approximations to frequent itemsets \cite{Riondato2012}.
+
+Given the VC-dimension $d$, the accuracy $\varepsilon$, the minimum frequency $\theta$, and some constant $c$.
+For an absolute-approximation:
+\begin{align*}
+    \frac{4c}{\varepsilon^{2}} \left( d + \log \frac{1}{\delta} \right)
+\end{align*}
+For a relative-approximation:
+\begin{align*}
+    \frac{4 \left( 2 + \varepsilon \right) c}{\varepsilon^{2} \left( 2 + \varepsilon \right) \theta} \left( d \log \frac{2 + \varepsilon}{\theta \left( 2 - \varepsilon \right)} + \log \frac{1}{\delta} \right)
+\end{align*}
+
+\subsection{Progressive Sampling}
+\label{sec:I_progressive_sampling}
+
+\end{document}
