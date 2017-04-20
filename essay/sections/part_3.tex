@@ -1,16 +1,126 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-%% The third part explains a topic not descussed in the course (besides pattern set mining)
+%% The third part explains a topic not discussed in the course (besides pattern set mining)
 %% and explains it like we did in part I.
-%% The topic of choice is: ...
+%% The topic of choice is: clustering
 
-\section*{Part III}
+\section*{Part III -- Topic of Choice: Clustering}
 \setcounter{section}{3}
 \setcounter{subsection}{0}
-\addcontentsline{toc}{section}{Part III}
+\addcontentsline{toc}{section}{Part III -- Topic of Choice: Clustering}
 
 \subsection{Introduction}
 \label{sec:III_intro}
+
+\emph{Clustering} is the technique of grouping sets of elements,
+where we want each element in a \emph{cluster} (group) to be more similar to each other,
+than to elements of any other group \cite{Jain1999}.
+Clustering has many applications in the fields of machine learning and data mining.
+It is useful to group similar objects together.
+For example, related scientific papers, movies in the same or similar genres, and so on.
+We can also look at clustering from a different perspective.
+If we would like to find the optimal locations for a restaurant chain,
+we could perform clustering based on the locations of potential customers.
+The center of the clusters can be used as a suggested location for a restaurant.
+
+We will review clustering in line with the data mining concepts that we discussed in section~\ref{sec:I_data_mining},
+and the works by \citeauthor{Riondato2012} \cite{Riondato2012, Riondato2015}.
+First, we discuss why clustering is relevant to big data, in the context of data mining, in section~\ref{sec:III_clustering_big_data}.
+There are multiple algorithms \cite{Jain1999} that can be used for the clustering problem.
+We will focus on only one of these algorithms, the $k$-means clustering algorithm, in section~\ref{sec:III_k-means}.
+
+
+\subsection{Clustering Big Data}
+\label{sec:III_clustering_big_data}
+
+
+In the context of data mining we can use clustering to group similar frequent itemsets or similar association rules.
+Furthermore, in \emph{big data} we expect to see a huge amount of frequent itemsets and association rules.
+Clustering plays a major role, as we can work with enormous amounts of unlabeled data,
+in contrast with the labeled data that we worked with before.
+We do not have to label the large set of data, and we do not need any prior knowledge about the data.
+It can be an efficient means to grouping, organizing, recommending, and browsing data.
+To discuss the relevance of clustering in big data, we will review two examples.
+
+
+First, let us take for example an online image search engine.
+The size of the world wide web is beyond imaginability.
+There are tens of billions of web pages, and probably just as many images, on the world wide web \cite{WwwSize}.
+Making a subset of these images searchable is an interesting problem to solve.
+For example, when we search for an image of the Eiffel Tower,
+we prefer the suggestions of images to feature the Eiffel Tower most prominently,
+and not get images of the Tower of Pisa.
+Clustering can be used to group together the images that feature the Eiffel Tower, and serve these first.
+
+
+Second, the largest social networks have more than a billion active users each month \cite{SocialNetworkSize}.
+To show relevant advertisements (arguably social networks are advertising platforms),
+it is beneficial to show an advertisement to a select group of users.
+Clustering can be applied to group users with similar interest.
+Unlocking the possibility for targeted advertisements.
+
+
+Clustering has some drawbacks too.
+It does not determine whether the returned partition of the data set is in any way usable to what the user.
+The user will have to decide whether the result is good enough.
+This also means that we might need to rerun the clustering algorithm multiple times on the data set,
+before we get a satisfying result.
+
+
+\subsection{\emph{k}-Means Clustering}
+\label{sec:III_k-means}
+
+
+In general, $k$-means clustering is an algorithm which partitions a given data set into $k$ clusters.
+The choice of $k$ is determined by the user of the algorithm.
+It is a popular approach in practical applications of clustering \cite[Chapter~22]{Shalev2014understanding}.
+
+Before we go into the workings of the $k$-means clustering algorithm, we first need to define the model for clustering.
+As input we have a data set $\mathcal{X}$.
+There exists a \emph{distance function} $d : \mathcal{X} \times \mathcal{X} \to \mathbb{R}_{+}$,
+which can be applied to compute the distance between two elements of the data set $\mathcal{X}$.
+It is required for this function to return a non-negative real number.
+As output we get a partition of the input set: a data set $C = (C_{1}, \ldots, C_{k})$.
+All elements from the input set $\mathcal{X}$ must be in the resulting partition $C$
+\cite[Chapter~22]{Shalev2014understanding}.
+
+In $k$-means clustering we are to partition a given data set into $k$ clusters.
+Formally, given a data set of $n$ data points, and an integer $k$,
+determine a set of $k$ points (\emph{centers} or \emph{centroids}) as to minimize the mean squared distance from each data point to its nearest center \cite{Kanungo2002}.
+The $k$-means problem itself is NP-hard.
+However, iterative algorithms exist that can return a feasible approximation in a practical setting \cite[Chapter~22]{Shalev2014understanding}.
+The $k$-means algorithm takes as input the data set $\mathcal{X}$ to partition and cluster,
+and a positive constant $k$ which indicates the number of clusters.
+More efficient implementations exist \cite{Kanungo2002}, but the general overview of the $k$-means algorithm is as follows:
+\begin{enumerate}[noitemsep]
+    \item Create an initial partition of the data set $\mathcal{X}$, which creates $k$ clusters.
+          Each cluster has its own centroid $\mu_{i}$.
+    \item \label{enum:k-means}
+          Go through each sample in the data set $\mathcal{X}$ in sequence.
+          Compute the distance from the sample to each centroid.
+          If the sample is not in the cluster with the closest centroid, switch clusters.
+          Recompute the centroids of the clusters where the sample was in, and where the sample moved to.
+    \item Repeat step~\ref{enum:k-means} until the algorithm converges.
+          This happens when a pass through the sequence of samples does not reassign any samples.
+\end{enumerate}
+
+
+The distance function $d$ (also known as the cost function), determines largely how the elements from the data set are clustered together.
+Two commonly used measures for the distance function are the Euclidean distance $d(x, y) = \| x - y \|$,
+or the squared distance $d(x, y) = \| x - y \|^{2}$.
+The distance function is used as part of the objective function.
+The objective function determines the properties of the sample points and the centroids.
+In the general overview that we viewed before we used the 'regular' \emph{$k$-means objective function},
+which uses the squared distance funtion.
+Some of the other objective functions are \cite[Chapter~22]{Shalev2014understanding}:
+\begin{itemize}[noitemsep]
+    \item The \emph{$k$-medoids objective function} is similar to the $k$-means objective functions,
+          but it requires the centroids to be members of the input data set.
+          The centroids can no longer take any position.
+    \item The \emph{$k$-median objective function}, which is a variant of the $k$-medoids objective function.
+          It uses the Euclidean distance instead of the squared distance.
+\end{itemize}
+
 
 \end{document}

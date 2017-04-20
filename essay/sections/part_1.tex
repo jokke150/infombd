@@ -6,10 +6,10 @@
 %%  "Mining Frequent Itemsets Through Progressive Sampling with Rademacher Averages"
 %% Whilst explaining these results, we should also explain the concepts that we use.
 
-\section*{Part I}
+\section*{Part I -- Discovery of Frequent Itemsets through Sampling}
 \setcounter{section}{1}
 \setcounter{subsection}{0}
-\addcontentsline{toc}{section}{Part I}
+\addcontentsline{toc}{section}{Part I -- Discovery of Frequent Itemsets through Sampling}
 
 \subsection{Introduction}
 \label{sec:I_intro}
@@ -21,12 +21,18 @@ Big data plays a role here too. The amount of data that we have at hand is enorm
 We cannot simply run a learning or mining algorithm that goes over the whole data set one, or multiple times.
 Therefore, we will have to take a sample of the data set and perform our calculations on that sample.
 
-We will first discuss machine learning, and will see how the sample size plays an essential role.
-Then we will review the data mining preliminaries to get an understanding where the algorithms can be applied.
-Finally we discuss the results from the works by \citeauthor{Riondato2012} \cite{Riondato2012, Riondato2015} to tie the machine learning and data mining parts together.
+
+We will first discuss machine learning in section~\ref{sec:I_machine_learning},
+to get an understanding of the statistical concepts that play a role, and to see how the sample size will take a central place.
+Then, in section~\ref{sec:I_vc_dimension} we discuss the Vapnik-Chervonenkis dimension.
+A classification that we can use to determine what is learnable.
+In section~\ref{sec:I_rademacher} we discuss the Rademacher complexity...
+In section~\ref{sec:I_data_mining} we will review the data mining preliminaries to get an understanding where the algorithms can be applied.
+Finally, in section~\ref{sec:I_performance_guarantees} and section~\ref{sec:I_progressive_sampling} we discuss the results from the works by \citeauthor{Riondato2012} \cite{Riondato2012, Riondato2015} to tie the machine learning and data mining parts together.
 To see how big our sample should be, what performance guarantees we can get, and how we can get a high-quality approximation through sampling.
 
-\subsection{Machine Learning}
+
+\subsection{Machine Learning: Statistical Understanding}
 \label{sec:I_machine_learning}
 
 Let us start with the data set $\mathcal{X}$ that we want to learn from.
@@ -39,13 +45,19 @@ What we will focus on instead is learning a function $h: \mathcal{X} \to \mathca
 which labels the items from the data set $\mathcal{X}$ with one of the labels from the label set $\mathcal{Y}$.
 The sample set $S \subseteq \mathcal{X} \times \mathcal{Y}$ is a finite set of pairs for which we know the correct label.
 We will refer to the function $h$ as a \emph{hypothesis}.
-Learning a hypothesis should be simpler than learning the underlying distribution.
-\cite[Chapter~2]{Shalev2014understanding}
+Learning a hypothesis should be simpler than learning the underlying distribution
+\cite[Chapter~2]{Shalev2014understanding}.
+
 
 When we sample items from the data set $\mathcal{X}$, we have to do so by sampling items independently of each other.
 The samples have to be independently and identically distributed according to $\mathcal{X}$.
 Sampling is often done with replacement.
 This means that for each sample that we pick, the probability of picking any sample remains the same.
+Sampling has some drawbacks too.
+If we are not careful, the sample might mislead us.
+For example, if we want to learn some function $h$ that will classify apples as ripe or unripe.
+When we try to learn from a sample set of only ripe apples, we might falsely come to the conclusion that all apples are ripe.
+ 
  
 We would like to know how well a hypothesis performs.
 We quantify this by defining the \emph{loss} of a hypothesis to be the probability that it does not predict the correct label.
@@ -53,8 +65,9 @@ This is captured in the true loss $L_{\mathcal{D}, f}(h)$
 of some hypothesis $h$ compared to the underlying distribution $\mathcal{D}$, and some \emph{true} function $f$.
 The loss can also be quantified over the sample set: $L_S(h)$, the fraction of samples that are correctly labelled over the total number of samples.
 Then we can work with the data that is readily available to us.
-However, the loss function is a random variable, as there is randomness caused by sampling items.
-\cite[Chapter~2]{Shalev2014understanding}
+However, the loss function is a random variable, as there is randomness caused by sampling items
+\cite[Chapter~2]{Shalev2014understanding}.
+
 
 We can collect the set of hypotheses in the hypotheses class $\mathcal{H}$.
 We can try to learn any hypothesis $h$, but often it can be beneficial to restrict ourselves.
@@ -65,12 +78,13 @@ For example, one of the most often used restrictions is to require the hypothese
 Our learning algorithm would then output a hypothesis $h$ for which the loss is minimal.
 Such a learning rule is known as \emph{Empirical Risk Minimization} (ERM).
 The algorithm itself is very simple.
-We compute the sample loss for each of the hypotheses in the hypotheses class $\mathcal{H}$, and return the hypothesis with the smallest loss.
+We compute the sample loss for each of the hypotheses in the hypotheses class $\mathcal{H}$, and return the hypothesis with the smallest loss 
+\cite[Chapter~2]{Shalev2014understanding}.
 \begin{align}
     \label{eq:erm}
     \ERM = \argmin_{h \in \mathcal{H}} L_S(h)
 \end{align}
-\cite[Chapter~2]{Shalev2014understanding}
+
 
 Realistically, we will never learn the \emph{true} hypothesis which labels all the items from the data set $\mathcal{X}$ correctly.
 However, we would like to know when we can expect reasonable results from a learning algorithm.
@@ -78,27 +92,35 @@ However, we would like to know when we can expect reasonable results from a lear
 Probably approximately correct refers to the result of the algorithm.
 The algorithm will return a hypothesis based on the accuracy parameter $\epsilon$ (how far can the hypothesis be apart from the optimal hypothesis),
 and the confidence parameter $\delta$ (how confident are we to meet the accuracy parameter).
+We will learn from the algorithm how big a sample we should use, to get close to a correct answer nearly every time.
+
 
 The \emph{sample complexity} is a function $\PACcmplx$ that determines how many samples are needed to get a probably approximately correct hypothesis.
-For every finite hypothesis class can be shown that it is PAC learnable with a sample complexity of
-\begin{align}
-    \label{eq:sample_complexity}
-    \PACcmplx \leq \left\lceil\frac{\log(\abs{\mathcal{H}} / \delta)}{\epsilon}\right\rceil
-\end{align}
-and is therefore an upper-bound.
-We will not go into detail of the sample complexity of finite hypothesis classes, as we will later on revisit PAC learnability with the Vapnik-Chervonenkis dimension.
-However, the hypothesis class $\mathcal{H}$ has to obey the \emph{realizability assumption} in the case given above.
-The realizability assumption assumes that a hypothesis class $\mathcal{H}$ will contain a true hypothesis $h^*$, which correctly labels all the items.
-\cite[Chapter~3]{Shalev2014understanding}
+% For every finite hypothesis class can be shown that it is PAC learnable with a sample complexity of
+% \begin{align}
+    % \label{eq:sample_complexity}
+    % \PACcmplx(\epsilon, \delta) \leq \left\lceil\frac{\log(\abs{\mathcal{H}} / \delta)}{\epsilon}\right\rceil
+% \end{align}
+% and is therefore an upper-bound.
+% We will not go into detail of the sample complexity of finite hypothesis classes,
+It provides an upper-bound on the required size of the sample set.
+We will not describe the exact details of the sample complexities until we will revisit PAC learnability with the Vapnik-Chervonenkis dimension in section~\ref{sec:I_vc_dimension}.
+However, until then the hypothesis class $\mathcal{H}$ has to obey the \emph{realizability assumption}.
+The realizability assumption assumes that a hypothesis class $\mathcal{H}$ will contain a true hypothesis $h^*$, which correctly labels all the items
+\cite[Chapter~3]{Shalev2014understanding}.
+
 
 We can generalize the PAC learning framework on two fields.
-First, if when we relax the realizability assumption from PAC learning, the framework is known as \emph{Agnostic} PAC Learning.
+First, if when we relax the realizability assumption from PAC learning, the framework is known as \emph{agnostic} PAC Learning.
 We are not certain anymore that we can find a true hypothesis $h^* \in \mathcal{H}$ which correctly labels all the items.
 However, this benefits us in another way.
 The relaxation of the realizability assumption helps us by not imposing any restrictions on the underlying distribution.
 Secondly, we can generalize the loss functions that can be used within the framework.
 The loss function that we described earlier determined the loss based on the number of errors that were made.
-For example, we can determine the loss based on the (squared) distance between the label from the hypothesis and the label from the sample set, for some item in the sample set.
+We will now assume that we will have a loss function $\ell$,
+which calculates the difference between the outcome of the hypothesis and the true outcome,
+and returns a non-negative real number.
+% TODO: explain the 0-1 loss and squared-distance loss functions?
 Recall the accuracy parameter $\epsilon$, and the confidence parameter $\delta$ that we defined for the PAC earning earlier.
 The agnostic PAC learning with a generalized loss function will return a hypothesis $h \in \mathcal{H}$,
 such that with a probability of at least $1 - \delta$
@@ -106,38 +128,131 @@ such that with a probability of at least $1 - \delta$
     \label{eq:pac_loss}
     L_{\mathcal{D}} \le \min_{h' \in \mathcal{H}} L_{\mathcal{D}}(h') + \epsilon
 \end{align}
-Where $L_{\mathcal{D}}$ is the expected loss of a hypothesis over the data set $\mathcal{D}$.
-\cite[Chapter~3]{Shalev2014understanding}
+Where $L_{\mathcal{D}}$ is the expected loss of a hypothesis over the data set $\mathcal{D}$, using the loss function $\ell$
+\cite[Chapter~3]{Shalev2014understanding}.
 
-% We are not only interested in when we can learn something, we want to know what we can learn too.
+
 How well we can learn something depends on the quality of the sample.
 To define the quality of a sample, we will reuse the accuracy parameter $\epsilon$ from PAC learning that we discussed earlier.
 The accuracy parameter defines how far the hypothesis can be apart from the optimal hypothesis.
 We will use the accuracy parameter to tell us when we have a good quality sample.
 Informally, a sample is good when the loss of a hypothesis on the sample is close to the loss of the true hypothesis on the sample.
-Such a sample is called an $\epsilon$-representative sample.
+Such a sample is called an $\epsilon$-representative sample \cite[Chapter~4]{Shalev2014understanding}.
 \begin{align}
     \label{eq:rep_sample}
-    \forall h \in \mathcal{H} \abs{L_{S(h)} - L_{\mathcal{D}}(h)} \le \epsilon
+    \forall h \in \mathcal{H} \abs{L_{S}(h) - L_{\mathcal{D}}(h)} \le \epsilon
 \end{align}
-\cite[Chapter~4]{Shalev2014understanding}
 
-\emph{\color{red}TODO: review chapter~4 and chapter~5 ...}
+
+If a hypothesis class $\mathcal{H}$ has the \emph{uniform convergence property}, and a sample complexity $\PACcmplxu$,
+we can provide stronger bounds on the required sample size.
+%The stronger bounds are shown in equation~\ref{eq:uniform_sample_cmplx}.
+A hypothesis class $\mathcal{H}$ has the uniform converge property if the sample from the sample complexity $\PACcmplxu$,
+with a probability of at least $1 - \delta$, is a $\epsilon$-representative sample set.
+We can then reapply the $\ERM$ algorithm to learn a hypothesis from the sample set
+\cite[Chapter~4]{Shalev2014understanding}.
+%\begin{align}
+%    \label{eq:uniform_sample_cmplx}
+%    \PACcmplx(\epsilon, \delta) \le \PACcmplxu(\epsilon/2, \delta) \le \left\lceil \frac{2 \log(2 \abs{\mathcal{H}} / \delta)}{\epsilon^{2}} \right\rceil
+%\end{align}
+
+
+Before we will discuss the Vapnik-Chervonenkis Dimension, we consider the \emph{no free lunch} theorem.
+Simply, the no free lunch theorem states that there does \emph{not} exist an universal learner (a learner without any prior knowledge).
+We would always need some prior knowledge (and therefore bias) about the problem that we want to learn.
+The no free lunch theorem applies to learning algorithms for binary classification (does something belong to a set, or does it not).
+The theorem states that there is a task for every learner on which it will fail.
+Analogue to the no free lunch theorem, if we require prior knowledge,
+we can express that the hypotheses class $\mathcal{H}$ cannot contain all possible functions (and be possibly infinite)
+\cite[Chapter~5]{Shalev2014understanding}.
+
+
+There is a trade-off that we need to make when choosing a hypotheses class $\mathcal{H}$.
+How much prior knowledge can we take with us when restricting the hypotheses class,
+whilst we still want to minimize the risk as we did with empirical risk minimization before.
+To quantify this trade-off, we can split the risk (or error) of the empirical risk minimization into two parts.
+\begin{align}
+    \label{eq:trade-off}
+    L_{\mathcal{D}} = \epsilon_{app} + \epsilon_{est}
+\end{align}
+First, the \emph{approximation error} ($\epsilon_{app}$) measures how much risk we have due to the prior knowledge that we introduced to restrict the hypotheses class $\mathcal{H}$.
+Second, the \emph{estimation error} ($\epsilon_{est}$) measures the error that is established because we can only estimate the loss of a hypothesis
+\cite[Chapter~5]{Shalev2014understanding}.
+
 
 \subsection{Vapnik-Chervonenkis Dimension}
 \label{sec:I_vc_dimension}
 
-To decide what we can learn, we need to get an understanding of which hypotheses classes are PAC learnable.
+In light of deciding what we can learn, we need to get a firmer understanding of which hypotheses classes are PAC learnable.
 Furthermore, we need to figure out the sample complexity of the hypotheses classes if we want to use them in practice.
-We will tie together the concepts that we discusses in section~\ref{sec:I_machine_learning} about machine learning,
+We will tie together the concepts that we discussed in section~\ref{sec:I_machine_learning} about machine learning,
 and introduce the Vapnik-Chervonenkis (VC) Dimension \cite{Vapnik2015}.
 For a learning algorithm to be PAC learnable, it will be required to have a finite VC-dimension.
-\cite[Chapter~6]{Shalev2014understanding}
+A finite bound on the VC-dimension results in a finite bound on the required size of the sample set.
+We will denote the VC-dimension of some class $C$ as $\VC(C)$
+\cite[Chapter~6]{Shalev2014understanding}.
 
-\subsection{Data Mining}
+
+For the explanation of the VC-dimension, we will limit the hypotheses (functions) to binary classification.
+A binary classification function is a function from any domain to $\left\{ 0, 1 \right\}$.
+The \emph{restriction} of a hypotheses class $\mathcal{H}$ to $C$, $\mathcal{H}_{C}$,
+is the set of binary classification functions that can be derived from $\mathcal{H}$.
+The class $C = \left\{c_{1}, \ldots, c_{m} \right\} $ is a subset of the data set $\mathcal{X}$ that we want to learn from,
+and the inputs for the hypotheses in $\mathcal{H}_{C}$.
+
+
+If the restriction of $\mathcal{H}$ to $C$ is the set of \emph{all} binary classification functions from $C$,
+then $\mathcal{H}$ \emph{shatters} the set $C$. Formally, $\abs{\mathcal{H}_{C}} = 2^{\abs{C}}$.
+Informally, if $\mathcal{H}$ shatters $C$, there is some function $h \in \mathcal{H}$ which separates the positive samples from the negative samples.
+For example, if we would visualize this shattered set in two dimensions, the points in $C$ would be scattered around a two-dimensional field.
+The function $h \in \mathcal{H}$ would then be a line that separates the positive samples from the negative samples.
+
+
+The formal definition of the \emph{VC-dimension} is: the maximal size of a set $C \subset \mathcal{X}$ that can be
+shattered by $\mathcal{H}$. If $\mathcal{H}$ can shatter sets of arbitrary large size, it has an infinite VC-dimension.
+
+
+Equation~\ref{eq:vc_complexity} provides a bound on the sample complexity \cite{Vapnik2015, Shalev2014understanding}.
+Assuming that we want to learn a hypotheses class $\mathcal{H}$ by use of agnostic PAC learning,
+where the $\mathcal{H}$ is a class of binary classification functions,
+for some absolute constants $C_{1}$, $C_{2}$, and the VC-dimension $d = \VC(\mathcal{H})$ (which is finite), the sample complexity is bounded by
+\begin{align}
+    \label{eq:vc_complexity}
+    C_{1} \frac{d + \log(1/\delta)}{\epsilon^{2}} \le \PACcmplx(\epsilon, \delta) \le C_{2} \frac{d + \log(1/\delta)}{\epsilon^{2}}
+\end{align}
+Even though we require the VC-dimension to be finite, the hypotheses class might still be infinite.
+
+\subsection{Rademacher Complexity}
+\label{sec:I_rademacher}
+
+The \emph{Rademacher complexity} is a measure for the rate of uniform converge, which we saw in section~\ref{sec:I_machine_learning}.
+It is a more modern approach \cite{Shalev2014understanding} to provide bounds on the sample complexity,
+just like we did with the VC-dimension in section~\ref{sec:I_vc_dimension}.
+
+Instead of a binary classification function $f \to \left\{0, 1\right\}$, we will use a binary classification function $f \to \left\{-1, +1\right\}$.
+In estimating the loss of the sample set, $L_{S}$ (see section~\ref{sec:I_machine_learning}),
+we replace the labels $y_{i}$ with the \emph{Rademacher random variables} $\sigma_{i} = \left\{-1, +1\right\}$ (each with a probability of $1/2$).
+We can view the loss function $L_{S}$ as the correlation between the predictions and the actual labels.
+
+To measure the expressiveness of some class of functions,
+the \emph{Rademacher complexity} takes the expected value of the \emph{empirical Rademacher complexity} over all samples of size $m$ (equation~\ref{eq:rademacher}).
+The \emph{empirical Rademacher complexity} $\RademacherEmpirical$ of a sample set $S$ of size $m$ is measured,
+by taking the expectation of the loss function $L_{S}$ on the random variables $\sigma_{i}$,
+and generalize it over any set of functions $\mathcal{F} : \mathcal{X} \to \mathbb{R} $ (equation~\ref{eq:rademacher_empirical}).
+The function $\sup$ is the \emph{supremum} of a set.
+The supremum of some subset $B \subseteq A$ is the smallest element of $A$, such that it is larger than or equal to all elements in the set $B$. 
+\begin{align}
+    \label{eq:rademacher}
+    \Rademacher\left(\mathcal{F}\right) &= \mathbb{E}\left[ \RademacherEmpirical\left(\mathcal{F}\right) \right] \\
+    \label{eq:rademacher_empirical}
+    \RademacherEmpirical\left(\mathcal{F}\right) &= \frac{1}{m} \mathbb{E}_{\sigma} \left[\sup_{f \in \mathcal{F}} \sum_{i} \sigma_{i} f\left( x_{i} \right) \right]
+\end{align}
+
+
+
+
+\subsection{Data Mining: Frequent Itemsets}
 \label{sec:I_data_mining}
-
-\emph{\color{red}TODO: move this section up?}
 
 Within the field of data mining, we are interested in the mining of frequent itemsets and association rules.
 The two of them often go together.
@@ -145,63 +260,106 @@ In line with the works that we discuss in the first part of this essay, we will 
 Their origin lies in the \emph{market-basket} model.
 Supermarkets wanted to learn more about their customers:
 which items are frequently bought together (the baskets/frequent itemsets)
-and, given a basket of items can we make predictions about which items the customer would buy also (association rules).
-\cite[Chapter~6]{Leskovec2014mining}
+and, given a basket of items can we make predictions about which items the customer would buy also (association rules)
+\cite[Chapter~6]{Leskovec2014mining}.
 
-Frequent Itemsets (FIs) mining is: given a data set $\mathcal{D}$ of \emph{transactions} (baskets),
+
+\emph{Frequent Itemsets} (FIs) mining is: given a data set $\mathcal{D}$ of \emph{transactions} (baskets),
 a ground set of all items $\mathcal{I}$, and a \emph{frequency threshold} $\theta \in (0,1]$
 we want to learn all the itemsets $I$ that appear in $\mathcal{D}$ with a frequency larger than $\theta$.
-\begin{align*}
+\begin{align}
     \FI(\mathcal{D}, \mathcal{I}, \theta) &= \{(I, \FIfreq(I)) \mid \FIfreq(I) \ge \theta \}
-\end{align*}
+\end{align}
 A transaction is a subset of the ground set $\mathcal{I}$.
-An itemset $I$ is a subset a transaction.
+An itemset $I$ is a subset of a transaction.
 The \emph{support} ($\FIsup$) of an itemset $I$, is the number of transactions in $\mathcal{D}$ that contain $I$.
 The \emph{frequency} of an itemset $I$, is the fraction of transactions in $\mathcal{D}$ that contain $I$:
-\begin{align*}
+\begin{align}
     \FIfreq(I) = \frac{\FIsup(I)}{\abs{\mathcal{D}}}.
-\end{align*}
+\end{align}
 %If we are interested in learning the top-\emph{K} FIs, we assume that there is some ordering on the itemsets based on frequency,
 %for which we can then extract the \emph{K} most frequent itemsets.
 
-Association Rules (ARs) are rules of the form $I \Rightarrow A$,
+
+\emph{Association Rules} (ARs) are rules of the form $I \Rightarrow A$,
 which informally state: how likely is it for an itemset $A$ to appear in a transaction, when an itemset $I$ is in a given transaction.
-This likeliness is expressed as the \emph{confidence} of an association rule: the frequency of the itemset $I \cup A$ to the itemset $I$.
-\cite{Riondato2012}
+This likeliness is expressed as the \emph{confidence} of an association rule: the frequency of the itemset $I \cup A$ to the itemset $I$
+\cite{Riondato2012}.
+
 
 We are interested in finding a high-quality approximation of the frequent itemsets.
 To describe the quality of the approximation, we will discuss the \FIapprox-approximation.
 The \FIapprox-approximation of the frequent itemsets $\FI(\mathcal{D}, \mathcal{I}, \theta)$ is a set of pairs
 which are close in their frequency to the itemsets in the actual frequent itemsets.
-\begin{align*}
+\begin{align}
     \mathcal{C} = \{ (I, f_I) \mid f_I \in (0,1] \}
-\end{align*}
+\end{align}
 Such that with a probability of at least $1 - \delta$:
 \begin{enumerate}[noitemsep]
     \item $\mathcal{C}$ contains all itemsets in $\FI(\mathcal{D}, \mathcal{I}, \theta)$;
-    \item For every pair in $\mathcal{C}$ it holds that $\FIfreq(I) \ge \theta - \epsilon$;
-    \item And, for every pair in $\mathcal{C}$ it holds that $\abs{\FIfreq(I) - f_I} \le \epsilon/2$.
+    \item For every pair in $\mathcal{C}$ it holds that $\FIfreq(I) \ge \theta - \epsilon$; and,
+    \item For every pair in $\mathcal{C}$ it holds that $\abs{\FIfreq(I) - f_I} \le \epsilon/2$.
 \end{enumerate}
-Where $f_I$ is the approximation of $\FIfreq(I)$.
-\cite{Riondato2015}
+Where $f_I$ is the approximation of $\FIfreq(I)$
+\cite{Riondato2015}.
+
 
 \subsection{Performance Guarantees}
 \label{sec:I_performance_guarantees}
 
-The work by \citeauthor{Riondato2012}: \citetitle{Riondato2012},
-provides a general technique for bounding the sample size required for getting high-quality approximations to frequent itemsets \cite{Riondato2012}.
+The work by \citeauthor{Riondato2012} \cite{Riondato2012}: \citetitle{Riondato2012},
+provides a general technique for bounding the sample size required for getting high-quality approximations to frequent itemsets.
+They use the Vapnik-Chervonenkis dimension to specify the bound on the sample size. 
+Furthermore, they provide an easy to compute upper bound for the VC-dimension: the $d$-index.
+
+The \emph{d-index} is the maximum integer $d$ such that a data set $\mathcal{D}$ contains at least $d$ transactions
+of length at least $d$ \cite{Riondato2012}.
+As the $d$-index is an upper bound to the, it can be used instead of the VC-dimension in equation~\ref{eq:riondato2012}.
 
 Given the VC-dimension $d$, the accuracy $\varepsilon$, the minimum frequency $\theta$, and some constant $c$.
-For an absolute-approximation:
-\begin{align*}
-    \frac{4c}{\varepsilon^{2}} \left( d + \log \frac{1}{\delta} \right)
-\end{align*}
-For a relative-approximation:
-\begin{align*}
-    \frac{4 \left( 2 + \varepsilon \right) c}{\varepsilon^{2} \left( 2 + \varepsilon \right) \theta} \left( d \log \frac{2 + \varepsilon}{\theta \left( 2 - \varepsilon \right)} + \log \frac{1}{\delta} \right)
-\end{align*}
+For an absolute-approximation of the transaction set we need a sample size of at least \cite{Riondato2012}
+\begin{align}
+    \label{eq:riondato2012}
+    \min \left\{ \abs{\mathcal{D}}, \frac{4c}{\varepsilon^{2}} \left( d + \log \frac{1}{\delta} \right) \right\}
+\end{align}
+The sample size bound in equation~\ref{eq:riondato2012} cannot be larger than the size of the data set $\mathcal{D}$.
+The other arguments comes directly from the VC-bound (equation~\ref{eq:vc_complexity}) that we discussed in section~\ref{sec:I_vc_dimension}.
+
+As we have seen in section~\ref{sec:I_vc_dimension}, a finite bound on the VC-dimension implies a finite bound on
+the required size of the sample set.
+Equation~\ref{eq:riondato2012} builds upon the sample complexity bound that we saw in equation~\ref{eq:vc_complexity} section~\ref{sec:I_vc_dimension}.
+
+
+Through experimental evaluation by \citeauthor{Riondato2012} \cite{Riondato2012},
+it has been shown that the VC-dimension provides provides a good bound on the required sample size to get a high-quality approximation (equation~\ref{eq:riondato2012}).
+
 
 \subsection{Progressive Sampling}
 \label{sec:I_progressive_sampling}
+
+The approach by \citeauthor{Riondato2012} \cite{Riondato2012} that we discussed in section~\ref{sec:I_performance_guarantees},
+relies on a fixed sample size.
+The required sample size is determined by computing the sample complexity beforehand.
+In the work by \citeauthor{Riondato2015} \cite{Riondato2015}: \citetitle{Riondato2015},
+a different sampling method is taken: \emph{progressive sampling}.
+The mining algorithm starts out with a small sample, and progressively increases the sample size until some stopping condition is met.
+The initial sample is indicated with $S_{0}^{*}$, and any consecutive sample is indicated with $S_{i}$.
+
+
+\begin{tabularx}{\textwidth}{X X}
+    {\begin{align} \label{eq:rademacher_start}
+        & S_{0}^{*} = \frac{8 \ln(2 / \delta)}{\varepsilon^{2}}
+    \end{align}}
+     & 
+    {\begin{align} \label{eq:rademacher_stop}
+        & 2\tilde{w}(s^{*}) + \sqrt{\frac{2 \ln(2 / \delta)}{\abs{S_{i}}}} \le \frac{\varepsilon}{2}
+    \end{align}}
+\end{tabularx}
+
+The progressive sampling approach has several benefits over fixed size sampling.
+Due to the incremental nature of the progressive sampling approach and its stopping condition,
+the algorithm can yield a high-quality approximation earlier than a fixed sampling approach.
+Furthermore, compared to the VC-dimension sampling complexity that we saw in sections~\ref{sec:I_vc_dimension}~and~\ref{sec:I_performance_guarantees},
+the Rademacher complexity provides a tighter bound, which in experimental evaluations performs even better \cite{Riondato2015}.
 
 \end{document}

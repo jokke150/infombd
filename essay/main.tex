@@ -3,9 +3,10 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[backend=biber]{biblatex}
-\usepackage{subfiles, amsmath, amssymb, mathtools}
+\usepackage{subfiles, amsmath, amssymb, mathtools, siunitx}
 \usepackage{parskip, xspace, hyperref, enumitem, tabularx}
-\usepackage{color}
+\usepackage{graphicx}
+\graphicspath{{images/}{../images/}}
 
 \addbibresource{references.bib}
 
@@ -22,14 +23,22 @@
 \DeclareMathOperator*{\argmin}{argmin}
 
 % PAC learning
-\newcommand{\PACcmplx}{m_{\mathcal{H}}(\epsilon, \delta)}
+\newcommand{\PACcmplx}{m_{\mathcal{H}}}
+\newcommand{\PACcmplxu}{m_{\mathcal{H}}^{\scriptscriptstyle UC}}
 \newcommand{\ERM}{\mathsf{ERM}_{\mathcal{H}}}
 
 % Frequent Itemsets
 \newcommand{\FI}{\mathsf{FI}}
-\newcommand{\FIsup}{\mathsf{sup}_{\mathcal{D}}}
+\newcommand{\FIsup}{\sup_{\mathcal{D}}}
 \newcommand{\FIfreq}{f_{\mathcal{D}}}
 \newcommand{\FIapprox}{$(\epsilon, \delta)$}
+
+% Vapnik-Chervonenkis
+\newcommand{\VC}{\mathsf{VC}}
+
+% Rademacher
+\newcommand{\Rademacher}{\mathcal{R}_{m}}
+\newcommand{\RademacherEmpirical}{\hat{\mathcal{R}}_{S}}
 
 %% Title page
 \newcommand*{\customtitle}{\begingroup
@@ -49,17 +58,22 @@
 
 \customtitle
 
-\begin{abstract}
-    This essay is written as part of the \emph{Big Data} course at Utrecht University.
-    The essay consists of three parts.
-    In the first part of this essay we discuss the results of the works of \citeauthor{Riondato2012}: \citetitle{Riondato2012}, and \citetitle{Riondato2015}.
-    Then, in the second part we compare Tiovonen's bounds and the d-bound sample size by performing a small experimental study.
-    Finally, in the third part we discuss a topic of choice: \emph{todo}.
-\end{abstract}
+\section*{Introduction}
+\setcounter{section}{0}
+\addcontentsline{toc}{section}{Introduction}
+
+This essay is written as part of the \emph{Big Data} course at Utrecht University.
+The essay consists of three parts.
+In the first part of this essay we discuss the results of the works of \citeauthor{Riondato2012}: \citetitle{Riondato2012}, and \citetitle{Riondato2015}.
+Then, in the second part we compare Tiovonen's bounds and the d-bound sample size by performing a small experimental study.
+Finally, in the third part we discuss a topic of choice: clustering.
+
 
 \subfile{sections/part_1}
 \subfile{sections/part_2}
 \subfile{sections/part_3}
+
+\clearpage
 
 \printbibliography
 
